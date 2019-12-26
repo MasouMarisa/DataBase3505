@@ -1,0 +1,62 @@
+.pageContainer{
+     bottom: 0;
+     left:0;
+     right: 0;
+     top: 53px;
+     overflow: auto;
+     position: absolute;
+     width: 100%;
+ }
+.pageSidebar{
+    width: 180px;
+    height:100%;
+    padding-bottom: 30px;
+    overflow: auto;
+    background-color: #e3e3e3;
+ }
+.pageContent{
+	 height: 100%;
+     min-width: 768px;
+     left: 246px;
+     top: 0;
+     right: 0;
+     z-index: 3;
+     padding-bottom: 30px;
+     position: absolute;
+}
+.searchTitle{
+    left: 714px;
+	top: 50px;
+	overflow: auto;
+    position: absolute;
+}
+.searchDate{
+	left: 414px;
+	top: 150px;
+	overflow: auto;
+    position: absolute;
+}
+.searchTime{
+	left: 714px;
+	top: 150px;
+	overflow: auto;
+    position: absolute;
+}
+.searchPlace{
+	left: 714px;
+	top: 150px;
+	overflow: auto;
+    position: absolute;
+}
+.searchPlace{
+	left: 1014px;
+	top: 150px;
+	overflow: auto;
+    position: absolute;
+}
+.searchButton{
+	left: 414px;
+	top: 250px;
+	overflow: auto;
+    position: absolute;
+}
