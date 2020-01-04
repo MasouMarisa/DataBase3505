@@ -15,11 +15,46 @@ def index(request):
     if not request.session.get('is_login', None):
         return redirect('/login/')
     return render(request, 'CS_app/index.html')
+
+def search(request):
+    if not request.session.get('is_login', None):
+        return redirect('/login/')
+    return render(request, 'CS_app/search.html')
+
+def search_result(request):
+    if not request.session.get('is_login', None):
+        return redirect('/login/')
+    return render(request, 'CS_app/search_result.html')
+
+def state(request):
+    if not request.session.get('is_login', None):
+        return redirect('/login/')
+    return render(request, 'CS_app/state.html')
+
+def opening(request):
+    if not request.session.get('is_login', None):
+        return redirect('/login/')
+    return render(request, 'CS_app/opening.html')
+
+def opening_result(request):
+    if not request.session.get('is_login', None):
+        return redirect('/login/')
+    return render(request, 'CS_app/opening_result.html')
+
+def arrange(request):
+    if not request.session.get('is_login', None):
+        return redirect('/login/')
+    return render(request, 'CS_app/arrange.html')
+
+def apply(request):
+    if not request.session.get('is_login', None):
+        return redirect('/login/')
+    return render(request, 'CS_app/apply.html')
+
 def index_student(request):
     if not request.session.get('is_login', None):
         return redirect('/login/')
     return render(request, 'CS_app/index_student.html')
-
 
 def login(request):
     if request.session.get('is_login', None):  # 不允许重复登录
@@ -38,12 +73,16 @@ def login(request):
             except :
                 message = '用户不存在！'
                 return render(request, 'CS_app/login.html', locals())
-
             if user.password == hash_code(password):
                 request.session['is_login'] = True
                 request.session['user_id'] = user.id
                 request.session['user_name'] = user.name
-                return redirect('/index_student/')
+                if user.identity == 'student':
+                    return redirect('/index_student/')
+                if user.identity == 'teacher':
+                    return redirect('/state/')
+                if user.identity == 'administrator':
+                    return redirect('/arrange/')
             else:
                 message = '密码不正确！'
                 return render(request, 'CS_app/login.html', locals())
