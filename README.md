@@ -1,4 +1,14 @@
 # DataBase3505
+### UPD - 1.4
+大更新 前端基本上写完了
+界面简述
+apply.html 教务处功能 - 处理教师开课的申请
+arrange.html 教务处功能 - 查看排课的结果
+opening.html 教师功能 - 教师开课
+opening_result.html 教师功能 - 教师开课结果（教师开课提交表单后返回该界面）
+state.html 教师功能 - 查看教师开课的状态
+search.html 学生功能 - 查询对应时段对应地点的课程
+search_result.html 学生功能 - 查询对应时段对应地点的课程的结果（学生查询提交表单后返回该界面）
 ### UPD - 12.30  
 关于数据生成格式：  
 学生 - 学号 姓名 学院 年级  
