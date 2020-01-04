@@ -1,7 +1,9 @@
 # DataBase3505
 ### UPD - 1.4
 大更新 前端基本上写完了
+
 界面简述
+
 apply.html 教务处功能 - 处理教师开课的申请
 
 arrange.html 教务处功能 - 查看排课的结果
