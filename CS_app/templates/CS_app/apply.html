@@ -225,6 +225,7 @@
   <script src="/static/js/demo/chart-pie-demo.js"></script>
   
   <!-- table.js -->
+  <form class="form-apply" action="/apply/" method="post">
   <script>
   var dataSet = [
   ["数据结构",2,100,"专业必修","张孝"],
@@ -247,14 +248,14 @@
             "bSortable": false,
             render: function(data, type, row) {
 			console.log(1);
-            var html ='<button class="btn btn-xs btn-success" value="0" >通过</button>&nbsp;&nbsp;&nbsp;&nbsp;'
-				+'<button class="btn btn-xs btn-warning" value="1">不通过</button>';
+            var html ='<button class="btn btn-xs btn-success" value="0" name="Y">通过</button>&nbsp;&nbsp;&nbsp;&nbsp;'
+				+'<button class="btn btn-xs btn-warning" value="1" name="N">不通过</button>';
             return html;
         }
         },]
     } );
   } );
-  </script>
+  </script></form>
 
 </body>
 

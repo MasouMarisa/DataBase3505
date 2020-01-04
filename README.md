@@ -1,4 +1,14 @@
 # DataBase3505
+### UPD - 1.5
+对接ing
+数据放在data文件里，您可以直接导入：
+```
+python manage.py shell
+
+from CS_app.views import *
+init_data()
+```
+
 ### UPD - 1.4
 大更新 前端基本上写完了
 
