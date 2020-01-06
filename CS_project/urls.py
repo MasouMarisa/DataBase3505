@@ -31,6 +31,7 @@ urlpatterns = [
     path('opening_result', views.opening_result),
     path('arrange/', views.arrange),
     path('apply/', views.apply),
+    path('get_post/', views.get_post),
     path('login/', views.login),
     path('register/', views.register),
     path('logout/', views.logout),

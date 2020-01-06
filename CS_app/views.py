@@ -55,6 +55,13 @@ def index_student(request):
     if not request.session.get('is_login', None):
         return redirect('/login/')
     return render(request, 'CS_app/index_student.html')
+def get_post(request):
+    if request.method == 'GET':
+        R = request.GET.get('row')
+        F = request.GET.get('flag')
+        print(R)
+        print(F)
+    return render(request, 'CS_app/index_student.html')
 
 def login(request):
     if request.session.get('is_login', None):  # 不允许重复登录

@@ -225,6 +225,7 @@
   <script src="/static/js/demo/chart-pie-demo.js"></script>
   
   <!-- table.js -->
+  {% csrf_token %}
   <script>
   var dataSet = [
   ["数据结构",2,100,"专业必修","张孝"],
@@ -246,16 +247,67 @@
 			"targets":-1,
             "bSortable": false,
             render: function(data, type, row) {
-			console.log(1);
-            var html ='<button class="btn btn-xs btn-success" value="0" >通过</button>&nbsp;&nbsp;&nbsp;&nbsp;'
-				+'<button class="btn btn-xs btn-warning" value="1">不通过</button>';
+			var R = row[0];
+            var html ='<button class="btn btn-xs btn-success" onclick="form_ok(\'' + R + '\')">通过</button>&nbsp;&nbsp;&nbsp;&nbsp;'
+				+'<button class="btn btn-xs btn-warning" onclick="form_no(\'' + R + '\')">不通过</button>';
             return html;
         }
         },]
     } );
   } );
   </script>
-
+  <script>
+	function form_ok(row) {
+	var	method = "get";
+    var form = document.createElement("form");
+    form.setAttribute("method", method);
+    form.setAttribute("action", /get_post/);
+ 
+ 
+    var rowField = document.createElement("input");
+    rowField.setAttribute("type", "text");
+    rowField.setAttribute("name", "row");
+    rowField.setAttribute("value", row);
+	
+ 
+    form.appendChild(rowField);
+    
+	var flagField = document.createElement("input");
+	flagField.setAttribute("type", "text");
+    flagField.setAttribute("name", "flag");
+    flagField.setAttribute("value", 0);
+	
+	form.appendChild(flagField);
+	
+    document.body.appendChild(form);
+    form.submit();
+	}
+	function form_no(row) {
+	var	method = "get";
+    var form = document.createElement("form");
+    form.setAttribute("method", method);
+    form.setAttribute("action", /get_post/);
+ 
+ 
+    var rowField = document.createElement("input");
+    rowField.setAttribute("type", "text");
+    rowField.setAttribute("name", "row");
+    rowField.setAttribute("value", row);
+	
+ 
+    form.appendChild(rowField);
+    
+	var flagField = document.createElement("input");
+	flagField.setAttribute("type", "text");
+    flagField.setAttribute("name", "flag");
+    flagField.setAttribute("value", 1);
+	
+	form.appendChild(flagField);
+	
+    document.body.appendChild(form);
+    form.submit();
+	}
+  </script>
 </body>
 
 </html>
