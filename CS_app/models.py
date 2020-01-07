@@ -14,7 +14,7 @@ class User(models.Model):
     name = models.CharField(max_length=128, unique=True)
     password = models.CharField(max_length=256)
     email = models.EmailField(unique=True)
-    identity = models.CharField(max_length=64, choices=IDENTITY, default="学生")
+    identity = models.CharField(max_length=64, choices=IDENTITY, default="student")
 
     def __str__(self):
         return self.name
@@ -171,11 +171,11 @@ class Apply(models.Model):
     )
 
     aid = models.AutoField(primary_key=True)
-    status = models.IntegerField(choices = STATUS, default = "申请中")
+    status = models.IntegerField(choices = STATUS, default = 2)
 
     cname = models.CharField(max_length=128)
     credit = models.CharField(max_length=128)
-    is_compulsory = models.CharField(max_length=128, choices=COMPULSORY, default="未知")
+    is_compulsory = models.CharField(max_length=128, choices=COMPULSORY, default="UNKNOWN")
     #target = models.IntegerField()
     cdepart = models.CharField(max_length=128)
 
@@ -187,6 +187,7 @@ class Apply(models.Model):
         verbose_name = "开课表"
         verbose_name_plural = "开课表"
 
+'''
 class R_T(models.Model):
     rtid = models.AutoField(primary_key=True)
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
@@ -198,11 +199,14 @@ class R_T(models.Model):
     class Meta:
         verbose_name = "时间-地点"
         verbose_name_plural = "时间-地点"
+'''
 
 class Schedule(models.Model):
 
     course = models.ForeignKey(Apply, on_delete=models.CASCADE)
-    rt = models.ManyToManyField(R_T)
+    time1 = models.ForeignKey(Time, on_delete=models.CASCADE, related_name='t1')
+    time2 = models.ForeignKey(Time, on_delete=models.CASCADE, null=True, related_name='t2')
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
     #students = models.ManyToManyField(User)  # m Student(name) -> Usr(name)
 
     def __str__(self):

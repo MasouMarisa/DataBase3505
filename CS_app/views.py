@@ -2,10 +2,13 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.db.models import Q
+import json
 from . import models
 from .models import *
 from . import forms
 import hashlib
+import random
+
 
 import datetime
 
@@ -24,20 +27,23 @@ def index(request):
         return redirect('/login/')
     return render(request, 'CS_app/index.html')
 
+'''
 def search(request):
     if not request.session.get('is_login', None):
         return redirect('/login/')
     return render(request, 'CS_app/search.html')
+'''
 
 def search_result(request):
     if not request.session.get('is_login', None):
         return redirect('/login/')
     return render(request, 'CS_app/search_result.html')
-
+'''
 def state(request):
     if not request.session.get('is_login', None):
         return redirect('/login/')
     return render(request, 'CS_app/state.html')
+'''
 
 '''
 def opening(request):
@@ -51,10 +57,12 @@ def opening_result(request):
         return redirect('/login/')
     return render(request, 'CS_app/opening_result.html')
 
+'''
 def arrange(request):
     if not request.session.get('is_login', None):
         return redirect('/login/')
     return render(request, 'CS_app/arrange.html')
+'''
 '''
 def apply(request):
     if not request.session.get('is_login', None):
@@ -92,7 +100,7 @@ def login(request):
                 request.session['user_id'] = user.id
                 request.session['user_name'] = user.name
                 if user.identity == 'student':
-                    return redirect('/index_student/')
+                    return redirect('/search/')
                 if user.identity == 'teacher':
                     return redirect('/state/')
                 if user.identity == 'administrator':
@@ -176,17 +184,17 @@ def DayName(x):
 
 def Period2Num(x):
     period_num = {
-        "8:00-9:30": 1, "10:00-11:30": 2, "12:00-13:30": 3,
+        "08:00-09:30": 1, "10:00-11:30": 2, "12:00-13:30": 3,
         "14:00-15:30": 4, "16:00-17:30": 5, "18:00-19:30": 6,
-        "19:40-21:10": 7, "8:00-10:30": 8, "14:00-16:30": 9, "18:00-21:00": 10
+        "19:40-21:10": 7, "08:00-10:30": 8, "14:00-16:30": 9, "18:00-21:00": 10
     }
     return period_num[x]
 
 def Num2Period(x):
     num_period = {
-        1: "8:00-9:30", 2: "10:00-11:30", 3: "12:00-13:30",
+        1: "08:00-09:30", 2: "10:00-11:30", 3: "12:00-13:30",
         4: "14:00-15:30", 5: "16:00-17:30", 6: "18:00-19:30",
-        7: "19:40-21:10",8 : "8:00-10:30", 9: "14:00-16:30", 10: "18:00-21:00"
+        7: "19:40-21:10",8 : "08:00-10:30", 9: "14:00-16:30", 10: "18:00-21:00"
     }
     return num_period[x]
 
@@ -202,53 +210,74 @@ def Name2Type(x):
     Type = {'专业必修': 'COMPULSORY', "专业选修": 'UNCOMPULSORY', "未知": 'UNKNOWN'}
     return Type[x]
 
+def Status2Num(x):
+    status_num = {"未通过": 1, "申请中": 2, "尚未排课": 3, "已排课": 4}
+    return status_num[x]
+
+def Num2Status(x):
+    status_name = {1: "未通过", 2: "申请中", 3: "尚未排课", 4: "已排课"}
+    return status_name[x]
+
+def TimeDivide(x): # x in [1 - 5]
+    Num = [
+        [1, 0], [1, 0],
+        [0, 1], [2, 0], [1, 1]
+    ]
+    return Num[int(x)-1]
+
+src = []
+Room_List = []
+room_num = 0
+init_flag = 1
+
 ### STUDENT ###
-'''
-def index_student(request):
+
+def search(request):
     if not request.session.get('is_login', None):
         return redirect('/login/')
 
     if request.method != 'POST':
-        squery_form = forms.SQueryForm()
-        return render(request, 'CS_app/index_student.html', locals())
+        return render(request, 'CS_app/search.html', locals())
 
-    squery_form = forms.SQueryForm(request.POST)
-
-    if not squery_form.is_valid():
-        return render(request, 'CS_app/index_student.html', locals())
-
-
-
-    d = squery_form.cleaned_data.get('day') # item
-    t = squery_form.cleaned_data.get('time')
-    p = squery_form.cleaned_data.get('place')
-
-    #d = request.POST.getlist('Sdate') # list
-    #t = request.POST.getlist('Stime')
-    #p = request.POST.getlist('Splace')
+    d = request.POST.get('date') # list
+    t = request.POST.get('time')
+    p = request.POST.get('place')
     #print(d, t, p) #DEBUG
 
-    period_num = {
-        "8:00-9:30": 1, "10:00-11:30": 2, "12:00-13:30": 3,
-        "14:00-15:30": 4, "16:00-17:30": 5, "18:00-19:30": 6,
-        "19:40-21:10": 7, "8:00-10:30": 8, "14:00-16:30": 9, "18:00-21:00": 10
-    }
-
-    tmp = Schedule.objects.filter(students__name=request.session.get('user_name'))
+    tmp = Schedule.objects.select_related("room", "time1", "time2", "course__tid1").all()
 
     if d != '':
         day = GET_WEEKDAY(d)
-        tmp = tmp.filter(rt__time__weekday = day)
+        tmp = tmp.filter(Q(time1__weekday = day) | Q(time2__weekday = day))
     if t != '所有' and t != '':
-        tmp = tmp.filter(rt__time__period = period_num)
+        per = Period2Num(t)
+        tmp = tmp.filter(Q(time1__period = per) | Q(time2__period = per))
     if p != '所有' and p != '':
-        tmp = tmp.filter(rt__room__rname = p)
+        tmp = tmp.filter(room__rname = p)
 
-    print('tmp = ', tmp)
+    #print('tmp = ', tmp)
 
-    #return render(request, 'CS_app/query_student.html', {'res': tmp})
-    return HttpResponse('get')
-'''
+    # ["程序设计",4,40,"专业必修","赵鑫","星期一 8:00-9:30|星期四 16:00-17:30","公教2楼2232"],
+    ret = []
+    for sch in tmp:
+        obj = sch.course
+        t = DayName(sch.time1.weekday) + ' ' + Num2Period(sch.time1.period)
+        r = sch.room.rname + ' ' + str(sch.room.room_id)
+        if sch.time2 != None:
+            t = t + ' | ' + DayName(sch.time2.weekday) + ' ' + Num2Period(sch.time2.period)
+        ret.append([
+            obj.cname, obj.credit, obj.num, Type2Name(obj.is_compulsory), obj.tid1.tname, t, r
+        ])
+
+
+    qwq = json.dumps(ret)# + json.dumps(ret[0])
+    #ERROR_LIST(qwq)
+
+    return render(request, 'CS_app/search_result.html', {
+        'res': qwq,
+    })
+    #return HttpResponse('get')
+
 '''
 ### Teacher & Admin & Student ###
 # Query All
@@ -285,7 +314,7 @@ def query(request):
 
     tmp = Apply.objects.all()
     ret = []
-    for obj in tmp.objects.all():
+    for obj in tmp:
         sch = obj.schedule_set.all()[0] # only
         tea = obj.tid1
 
@@ -311,34 +340,230 @@ def query(request):
     return render(request, 'CS_app/query.html', {'': ret})
     #return HttpResponse('get')
 
-
+'''
 ### Teacher ###
 # Query status
-def tquery(request):
+def state(request):
     if not request.session.get('is_login', None):
         return redirect('/login/')
 
-    if request.method != 'POST':
-        tquery_form = forms.TQueryForm()
-        return render(request, 'CS_app/index_teacher.html', locals()) # Teacher
+    #if request.method != 'POST':
+    #    return render(request, 'CS_app/index_teacher.html', locals()) # Teacher
 
-    tquery_form = forms.TQueryForm(request.POST)
-
-    if not tquery_form.is_valid():
-        return render(request, 'CS_app/index_teacher.html', locals())
+    tmp = Apply.objects.select_related("tid1").filter(tid1__tid=int(request.session.get('user_name')))
+    qwq = Schedule.objects.select_related("course__tid1", "time1", "time2", "room").filter(course__tid1__tid=int(request.session.get('user_name')))
 
 
-    status_num = {"未通过":1, "申请中":2, "尚未排课":3, "已排课":4 }
-    sta = tquery_form.cleaned_data.get('status')
-    tmp = Apply.objects.filter(tid1__tname = request.session.get('user_name'))#.filter(tid2__tname = request.session.get('user_name'))
+    ret = []
+    for sch in qwq:
+        obj = sch.course
+        tea = obj.tid1
+        t = DayName(sch.time1.weekday) + ' ' + Num2Period(sch.time1.period)
+        r = sch.room.rname + ' ' + str(sch.room.room_id)
+        if sch.time2 != None:
+            t = t + ' | ' + DayName(sch.time2.weekday) + ' ' + Num2Period(sch.time2.period)
+        ret.append([obj.cname, obj.credit, obj.num, Type2Name(obj.is_compulsory), tea.tname, Num2Status(obj.status), t, r])
 
-    if sta:
-        for st in sta:
-            tmp = tmp.filter(status = status_num[st])
-    return render(request, 'CS_app/query_teacher.html', locals())
-'''
+    for obj in tmp:
+        if obj.status == 4:
+            continue
 
-# Apply
+        tea = obj.tid1
+
+        t = '-'
+        r = '-'
+        #ret.append({
+        #    'cname': obj.cname,
+        #    'credit': obj.credit,
+        #    'num': obj.num,
+        #    'ctype': obj.is_compulsory,
+        #    'tname': tea.tname,
+        #    'status': obj.status,
+        #    'time': t,
+        #    'room': r
+        #})
+        ret.append([obj.cname, obj.credit, obj.num, Type2Name(obj.is_compulsory), tea.tname, Num2Status(obj.status), t, r])
+
+
+    return render(request, 'CS_app/state.html', {'res': json.dumps(ret), })
+
+
+## Admin
+def arrange(request):
+    if not request.session.get('is_login', None):
+        return redirect('/login/')
+
+    #if request.method != 'POST':
+    #    return render(request, 'CS_app/index_teacher.html', locals()) # Teacher
+
+    tmp = Apply.objects.select_related("tid1").all()
+    qwq = Schedule.objects.select_related("course__tid1", "time1", "time2", "room").all()
+
+
+    ret = []
+    for sch in qwq:
+        obj = sch.course
+        tea = obj.tid1
+        t = DayName(sch.time1.weekday) + ' ' + Num2Period(sch.time1.period)
+        r = sch.room.rname + ' ' + str(sch.room.room_id)
+        if sch.time2 != None:
+            t = t + ' | ' + DayName(sch.time2.weekday) + ' ' + Num2Period(sch.time2.period)
+        ret.append([obj.cname, obj.credit, obj.num, Type2Name(obj.is_compulsory), tea.tname, Num2Status(obj.status), t, r])
+
+    for obj in tmp:
+        if obj.status == 4:
+            continue
+
+        tea = obj.tid1
+
+        t = '-'
+        r = '-'
+        #ret.append({
+        #    'cname': obj.cname,
+        #    'credit': obj.credit,
+        #    'num': obj.num,
+        #    'ctype': obj.is_compulsory,
+        #    'tname': tea.tname,
+        #    'status': obj.status,
+        #    'time': t,
+        #    'room': r
+        #})
+        ret.append([obj.cname, obj.credit, obj.num, Type2Name(obj.is_compulsory), tea.tname, Num2Status(obj.status), t, r])
+
+
+    return render(request, 'CS_app/arrange.html', {'res': json.dumps(ret), })
+
+
+
+
+def TimeID(day, period):
+    return day * 10 + period + 1
+
+def GetTime(srci, L):
+    ConflictMatrix = [ [0],
+        [1, 8],
+        [2, 8],
+        [3],
+        [4, 9],
+        [5, 9],
+        [6, 10],
+        [7, 10],
+        [8, 1, 2],
+        [9, 4, 5],
+        [10, 6, 7]
+    ]
+    iter1 = list(range(5)) # random
+    random.shuffle(iter1)
+    random.shuffle(L)
+    for i in iter1:
+        for j in L:
+            if srci[TimeID(i, j)] == True:
+                vec = ConflictMatrix[j]
+                for k in vec:
+                    srci[TimeID(i, k)] = False
+                    if k>=8:
+                        srci[1] -= 1
+                    else:
+                        srci[0] -= 1
+                #print(TimeID(i, j)-1)
+                return TimeID(i, j)-1
+
+# [3] : [8, 9, 10]
+def CheckRoom(room, num2, num3, srci):
+    if srci[0] >= num2+num3*2 and srci[1] >= num3:
+        #print(room.rid, ' ', str(num2) + ' ' + str(num3), ' ', srci[0], ' ', srci[1], ' ', num2+num3*2)
+        ret = []
+        for i in range(num3):
+            ret.append(GetTime(srci, [8,9,10]))
+        #print('tmp' +str(ret))
+        for i in range(num2):
+            ret.append(GetTime(srci, [x for x in range(1,8)]))
+        #print(ret)
+        #print(room.rid, ' ', str(num2) + ' ' + str(num3), ' ', srci[0], ' ', srci[1], ' ', num2 + num3 * 2)
+        sorted(ret)
+        return ret
+    return [-1]
+
+
+def Init_Room():
+    global Room_List, room_num, src
+    ConflictMatrix = [[0], [1, 8], [2, 8], [3],
+                      [4, 9], [5, 9], [6, 10], [7, 10],
+                      [8, 1, 2], [9, 4, 5], [10, 6, 7] ]
+    Sch = Schedule.objects.select_related("time1", "time2", "room")
+    Room_List = list(Room.objects.all())
+    room_num = len(Room_List)
+
+    sorted(Room_List, key=lambda x: x.capacity, reverse=False)
+    mp = {}
+    src = [[7 * 5, 3 * 5] + [True for y in range(70)] for x in range(room_num)]
+
+    for i,x in enumerate(Room_List):
+        mp[x.rid] = i
+
+    for sc in Sch:
+        i = mp[sc.room.rid]
+        x, y = sc.time1.weekday, sc.time1.period
+        #pos = TimeID(x, y)
+        vec = ConflictMatrix[y]
+        for k in vec:
+            src[i][TimeID(x, k)] = False
+            if k >= 8:
+                src[i][1] -= 1
+            else:
+                src[i][0] -= 1
+        if sc.time2 == None:
+            continue
+        x, y = sc.time2.weekday, sc.time2.period
+        #pos = TimeID(x, y)
+        vec = ConflictMatrix[y]
+        for k in vec:
+            src[i][TimeID(x, k)] = False
+            if k >= 8:
+                src[i][1] -= 1
+            else:
+                src[i][0] -= 1
+
+
+
+# scheduling 尚未排课->开课成功
+def schedule(app):
+    global Room_List, room_num, src, init_flag
+    if (init_flag):
+        Init_Room()
+        init_flag = 0
+
+    [num2, num3] = TimeDivide(app.credit)
+    Flag = 1
+
+    for (srci, room) in zip(src, Room_List):  # find a room
+        if room.capacity < app.num:
+            continue
+
+        res = CheckRoom(room, num2, num3, srci)  # time period
+        if res[0] != -1:  # Find
+            sch = Schedule()
+            sch.course = app
+            sch.room = room
+            sch.time1 = Time.objects.get(weekday=(res[0]-1)//10, period=(res[0]-1)%10+1)
+            if len(res)==1:
+                sch.time2 = None
+            else:
+                sch.time2 = Time.objects.get(weekday=(res[1]-1)//10, period=(res[1]-1)%10+1)
+            sch.save()
+
+            Flag = 0
+            break
+    # print('app end', appid)
+    if Flag != 1:
+        app.status = 4
+        app.save()
+        return 1 # successful
+    else:
+        return 0 # fail
+
+
+# Teacher Apply
 def opening(request): ## insert
     if not request.session.get('is_login', None):
         return redirect('/login/')
@@ -379,11 +604,13 @@ def opening(request): ## insert
         # ERROR_LIST("23333333")
         return render(request, 'CS_app/opening.html', locals())
 
-    #app.save() #TEMP
+    app.status = 2
+    app.save() #TEMP
+    # ERROR_LIST([app.aid, app.status, app.cname, app.credit, app.is_compulsory, app.num])
+    #schedule(app) # ???
     #return HttpResponse('申请提交成功！')
     #return HttpResponse(app.cname + str(app.credit) + app.is_compulsory +app.tid1.tname+str(app.num))
     return redirect('/opening_result/')
-
 
 ### Administrator
 
@@ -392,97 +619,185 @@ def apply(request):
     if not request.session.get('is_login', None):
         return redirect('/login/')
 
-    tmp = Apply.objects.filter(status=2)
-    #  ["数据结构",2,100,"专业必修","张孝"],
-    ret = []
-    for obj in tmp:
-        tea = obj.tid1
-        ret.append([obj.cname, obj.credit, obj.num, obj.is_compulsory, tea.tname])
+    tmp = Apply.objects.select_related("tid1").filter(status=2)
+    #tmplist = list(tmp)
+    #print(tmplist)
 
-    if request.method != 'POST': ## init
-        return render(request, 'CS_app/apply.html', {'ret': ret})
+    # print(request.method) # GET
+    # if request.method != 'POST': ## init
+    #     return render(request, 'CS_app/apply.html', {'res': json.dumps(ret), })
 
-    v1 = request.POST.get('Y')
-    v2 = request.POST.get('N')
+    R = request.GET.get('row')
+    F = request.GET.get('flag') # 0 pass
 
-    ERROR_LIST([v1,v2])
-
-
+    #print(R, type(R)) str / None
+    #print(F, type(F))
 
     # if search
     #
     #
 
-    #
-    return render(request, 'CS_app/apply.html', {'ret': ret})
+    if R == None or F == None:  ## init
+        pass
+    else:
+        # Pass or Not
+        app = tmp.get(aid=int(R)) # aid:int
+        if F == '0': # pass
+            schedule(app)
+        else:
+            app.status = 1
+            app.save()
+            pass
+
+    #  ["数据结构",2,100,"专业必修","张孝"],
+    ret = []
+    for obj in tmp:
+        tea = obj.tid1
+        ret.append([obj.aid, obj.cname, obj.credit, obj.num, Type2Name(obj.is_compulsory), tea.tname])
 
 
-
-
-
-'''
-# scheduling 尚未排课->开课成功
-def aschedule(request):
-    if not request.session.get('is_login', None):
-        return redirect('/login/')
-
-    if request.method != 'POST':
-        schedule_form = forms.ScheduleForm()
-        return render(request, 'CS_app/index_admin.html', locals())  # Teacher
-
-    schedule_form = forms.ScheduleForm(request.POST)
-
-    if not schedule_form.is_valid():
-        return render(request, 'CS_app/index_admin.html', locals())
-
-    d = schedule_form.cleaned_data.get('day')  # item
-    t = schedule_form.cleaned_data.get('time')
-    p = schedule_form.cleaned_data.get('place')
-
-    tid = DAY[d]*10 + TIME[t]
-
-    tmp = R_T.objects.filter(room_name=p, time__tid=tid)
-'''
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return render(request, 'CS_app/apply.html', {'res': json.dumps(ret), })
 
 
 
 # Test
 def get_post(request):
-    print("INEL YES")
-    if request.method == 'POST':
-        print('AMD YES')
+    if request.method == 'GET':
+        R = request.GET.get('row')
+        F = request.GET.get('flag')
+        print(R)
+        print(F)
+    return render(request, 'CS_app/index_student.html')
 
 # 原则上
 # 不排周末
 # 小教室优先
 # 高学分优先
 # 尽量同一教室
-def init_schedule(tea_num, Teacher_List, time_num, Time_List,
-        room_num, Room_List, apply_num, Apply_List):
+def init_schedule(room_num, Room_List, Apply_List):
+
+    Ti = Time.objects.all()
 
     sorted(Room_List, key=lambda x: x.capacity, reverse=False)
-    src = [[7, 3]] * room_num
+    sorted(Apply_List, key=lambda x: x.credit, reverse=True)
 
-    pass
+   # Ti = Time.objects().all()
 
-def init_data():
-    tea_num, Teacher_List = 0, []
-    time_num, Time_List = 0, []
-    room_num, Room_List = 0, []
+    # WeekDays
+    global src
+    src = [[7 * 5, 3 * 5] + [True for y in range(70)] for x in range(room_num)]
+
+    # ans = {}
+    # k1, k2 = 0, 0
+    # [n1, n2] = [0, 0]
+    # appid = 0
+    for app in Apply_List:
+        if app.status == 3:
+            [num2, num3] = TimeDivide(app.credit)
+            # [n1, n2] = [n1+num2, n2+num3]
+            Flag = 1
+
+            #appid+=1
+            # print('app begin', appid)
+            for (srci,room) in zip(src, Room_List): # find a room
+                if room.capacity < app.num:
+                    continue
+
+                res = CheckRoom(room, num2, num3, srci) # time period
+                if res[0] != -1: # Find
+                    #DEBUG
+                    # if res[0] <= 0 or res[0] > 70 or ans.get(str(room.rid) + ',' + str(res[0])):
+                    #     ERROR_LIST('conflict')
+                    #     return
+                    # else:
+                    #     ans[str(room.rid) + ',' + str(res[0])] = 1
+                    #     if (res[0]-1)%10>6:
+                    #         k2 += 1
+                    #     else:
+                    #         k1 += 1
+                    # if len(res) > 1:
+                    #     if res[1] <= 0 or res[1] > 70 or ans.get(str(room.rid) + ',' + str(res[1])):
+                    #         ERROR_LIST('conflict')
+                    #         return
+                    #     else:
+                    #         ans[str(room.rid) + ',' + str(res[1])] = 1
+                    #         if (res[1] - 1) % 10 > 6:
+                    #             k2 += 1
+                    #         else:
+                    #             k1 += 1
+
+                    #n0 = []
+                    #n1 = []
+                    #for x in src:
+                    #    n0.append(x[0])
+                    #    n1.append(x[1])
+                    #print("n0: ", n0, '\n', "n1: ", n1)
+                    sch = Schedule()
+                    sch.course = app
+                    sch.room = room
+                    sch.time1 = Ti.get(weekday=(res[0]-1)//10, period=(res[0]-1)%10+1)
+                    if len(res)==1:
+                       sch.time2 = None
+                    else:
+                        sch.time2 = Ti.get(weekday=(res[1]-1)//10, period=(res[1]-1)%10+1)
+                    sch.save()
+
+                    Flag = 0
+                    break
+            # print('app end', appid)
+            if Flag != 1:
+                app.status = 4
+                app.save()
+
+    # WeekEnds NoNoNo
+    for i in range(room_num):
+        src[i][0] += 7 * 2
+        src[i][1] += 3 * 2
+
+    for app in Apply_List:
+        if app.status == 3:
+            [num2, num3] = TimeDivide(app.credit)
+            Flag = 1
+
+            for (srci,room) in zip(src, Room_List): # find a room
+                if room.capacity < app.num:
+                    continue
+
+                res = CheckRoom(room, num2, num3, srci)
+                if res[0] != -1: # Find
+
+                    sch = Schedule()
+                    sch.course = app
+                    sch.room = room
+                    sch.time1 = Ti.get(weekday=(res[0] - 1) // 10, period=(res[0] - 1) % 10 + 1)
+                    if len(res) == 1:
+                        sch.time2 = None
+                    else:
+                        sch.time2 = Ti.get(weekday=(res[1] - 1) // 10, period=(res[1] - 1) % 10 + 1)
+                    sch.save()
+
+                    Flag = 0
+                    break
+
+            if Flag != 1:
+                app.status = 4
+                app.save()
+            else:
+                ERROR_LIST("Lack of Room")
+                break
+    ### check
+
+def build_small_test_case():
+    tmp = Apply.objects.filter(aid__gte=1996, aid__lt=1999)
+    for app in tmp:
+        schedule(app)
+    for app in tmp:
+        print(app.status)
+
+def init_data(test_small_case = 0):
+    global Room_List, room_num
+    tea_num, Teacher_List = 0, {}
+    time_num = 0
     apply_num, Apply_List = 0, []
 
     # Teacher
@@ -495,7 +810,7 @@ def init_data():
         Tea.tdepart = tdepart
         Tea.save()
         tea_num += 1
-        Teacher_List.append(Tea)
+        Teacher_List[tid] = Tea
     f.close()
 
     # User id,name,password,email,identity
@@ -520,7 +835,6 @@ def init_data():
         t.period = int(period)
         t.save()
         time_num += 1
-        Time_List.append(t)
     f.close()
 
     # Room 1,明德新闻楼,2,0206,23
@@ -544,7 +858,7 @@ def init_data():
         [aid, tid, cname, is_compulsory, credit, num, status] = s.strip('\n').split(',')
         app = Apply()
         app.aid = aid
-        app.tid1 = Teacher.objects.get(tid=tid)
+        app.tid1 = Teacher_List[tid]#Teacher.objects.get(tid=tid)
         app.tid2 = None
         app.cname = cname
         app.is_compulsory = is_compulsory
@@ -559,9 +873,8 @@ def init_data():
 
     print('load into db .. ', tea_num, time_num, room_num, apply_num)
 
-    init_schedule(tea_num, Teacher_List,
-        time_num, Time_List,
-        room_num, Room_List,
-        apply_num, Apply_List
-    )
+    if test_small_case:
+        build_small_test_case()
+    else:
+        init_schedule( room_num, Room_List, Apply_List )
     print('finished ..')

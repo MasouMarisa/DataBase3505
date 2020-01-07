@@ -1,12 +1,13 @@
 # DataBase3505
 ### UPD - 1.5
-对接ing
+对接完毕（悲
 数据放在data文件里，您可以直接导入：
 ```
 python manage.py shell
 
 from CS_app.views import *
 init_data()
+// 或 init_data(1) 为一个部分排课的小样例
 ```
 
 ### UPD - 1.4
