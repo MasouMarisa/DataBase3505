@@ -439,7 +439,7 @@ def arrange(request):
 def TimeID(day, period):
     return day * 10 + period + 1
 
-def GetTime(srci, L):
+def GetTime(srci, L, last):
     ConflictMatrix = [ [0],
         [1, 8],
         [2, 8],
@@ -452,8 +452,17 @@ def GetTime(srci, L):
         [9, 4, 5],
         [10, 6, 7]
     ]
+
     iter1 = list(range(5)) # random
     random.shuffle(iter1)
+    if last != 10:
+        iter1.remove(last)
+        if last != 4:
+            iter1.remove((last + 1) % 7)
+            #iter1.append((last+1)%7)
+        if last != 0:
+            iter1.remove((last+6)%7)
+            #iter1.append((last+6)%7)
     random.shuffle(L)
     for i in iter1:
         for j in L:
@@ -467,20 +476,28 @@ def GetTime(srci, L):
                         srci[0] -= 1
                 #print(TimeID(i, j)-1)
                 return TimeID(i, j)-1
+    return -1
 
 # [3] : [8, 9, 10]
 def CheckRoom(room, num2, num3, srci):
     if srci[0] >= num2+num3*2 and srci[1] >= num3:
         #print(room.rid, ' ', str(num2) + ' ' + str(num3), ' ', srci[0], ' ', srci[1], ' ', num2+num3*2)
+        flag = 10
         ret = []
         for i in range(num3):
-            ret.append(GetTime(srci, [8,9,10]))
+            tmp = GetTime(srci, [8,9,10], flag)
+            ret.append(tmp)
+            if tmp!=-1:
+                flag = (tmp-1)//10
         #print('tmp' +str(ret))
         for i in range(num2):
-            ret.append(GetTime(srci, [x for x in range(1,8)]))
+            tmp = GetTime(srci, [x for x in range(1,8)], flag)
+            ret.append(tmp)
+            if tmp!=-1:
+                flag = (tmp-1)//10
         #print(ret)
         #print(room.rid, ' ', str(num2) + ' ' + str(num3), ' ', srci[0], ' ', srci[1], ' ', num2 + num3 * 2)
-        sorted(ret)
+        ret = sorted(ret, reverse=False)
         return ret
     return [-1]
 
@@ -494,7 +511,7 @@ def Init_Room():
     Room_List = list(Room.objects.all())
     room_num = len(Room_List)
 
-    sorted(Room_List, key=lambda x: x.capacity, reverse=False)
+    Room_List = sorted(Room_List, key=lambda x: x.capacity, reverse=False)
     mp = {}
     src = [[7 * 5, 3 * 5] + [True for y in range(70)] for x in range(room_num)]
 
@@ -678,8 +695,8 @@ def init_schedule(room_num, Room_List, Apply_List):
 
     Ti = Time.objects.all()
 
-    sorted(Room_List, key=lambda x: x.capacity, reverse=False)
-    sorted(Apply_List, key=lambda x: x.credit, reverse=True)
+    Room_List = sorted(Room_List, key=lambda x: x.capacity, reverse=False)
+    Apply_List = sorted(Apply_List, key=lambda x: x.credit, reverse=True)
 
    # Ti = Time.objects().all()
 
@@ -739,6 +756,8 @@ def init_schedule(room_num, Room_List, Apply_List):
                     if len(res)==1:
                        sch.time2 = None
                     else:
+                        if res[1]<=0 or res[1]>70:
+                            ERROR_LIST(res)
                         sch.time2 = Ti.get(weekday=(res[1]-1)//10, period=(res[1]-1)%10+1)
                     sch.save()
 
