@@ -801,7 +801,7 @@ def init_data(test_small_case = 0):
     apply_num, Apply_List = 0, []
 
     # Teacher
-    f = open('../data/teacher.csv', mode='r')
+    f = open('data/teacher.csv', mode='r')
     for s in f:
         [tid, tname, tdepart] = s.strip('\n').split(',')
         Tea = Teacher()
@@ -814,7 +814,7 @@ def init_data(test_small_case = 0):
     f.close()
 
     # User id,name,password,email,identity
-    f = open('../data/user.csv', mode='r')
+    f = open('data/user.csv', mode='r')
     for s in f:
         [uid, name, password, email, identity] = s.strip('\n').split(',')
         usr = User()
@@ -826,7 +826,7 @@ def init_data(test_small_case = 0):
     f.close()
 
     # Time
-    f = open('../data/time.csv', mode='r')
+    f = open('data/time.csv', mode='r')
     for s in f:
         [tmid, weekday, period] = s.strip('\n').split(',')
         t = Time()
@@ -838,7 +838,7 @@ def init_data(test_small_case = 0):
     f.close()
 
     # Room 1,明德新闻楼,2,0206,23
-    f = open('../data/room.csv', mode='r', encoding='utf-8')
+    f = open('data/room.csv', mode='r', encoding='utf-8')
     for s in f:
         [rid, rname, floor, room_id, capacity] = s.strip('\n').split(',')
         rm = Room()
@@ -853,7 +853,7 @@ def init_data(test_small_case = 0):
     f.close()
 
     # Apply 1,2013100000,程序设计,COMPULSORY,2,20,3 cdepart
-    f = open('../data/apply.csv', mode='r')
+    f = open('data/apply.csv', mode='r')
     for s in f:
         [aid, tid, cname, is_compulsory, credit, num, status] = s.strip('\n').split(',')
         app = Apply()
