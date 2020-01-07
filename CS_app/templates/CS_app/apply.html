@@ -227,14 +227,18 @@
   <!-- table.js -->
   {% csrf_token %}
   <script>
-  var dataSet = [
-  ["数据结构",2,100,"专业必修","张孝"],
-  ["程序设计",4,40,"专业必修","赵鑫"],
-  ["东方Project",2,50,"专业选修","ZUN"]];
+  /*
+      var dataSet = [
+  ["1", "数据结构",2,100,"专业必修","张孝"],
+  ["2", "程序设计",4,40,"专业必修","赵鑫"],
+  ["3", "东方Project",2,50,"专业选修","ZUN"]];
+  */
+  var dataSet = {{ res|safe }};
   $(document).ready(function() {
     $('#applyTable').DataTable( {
         data: dataSet,
         columns: [
+            { title: "课程编号" },
             { title: "课程名称" },
             { title: "课程学分" },
             { title: "课程人数" }, 
@@ -261,7 +265,7 @@
 	var	method = "get";
     var form = document.createElement("form");
     form.setAttribute("method", method);
-    form.setAttribute("action", /get_post/);
+    form.setAttribute("action", /apply/);
  
  
     var rowField = document.createElement("input");
@@ -286,7 +290,7 @@
 	var	method = "get";
     var form = document.createElement("form");
     form.setAttribute("method", method);
-    form.setAttribute("action", /get_post/);
+    form.setAttribute("action", /apply/);
  
  
     var rowField = document.createElement("input");

@@ -1,0 +1,30 @@
+zrq进度record		0 / inf：
+
+Search 里的没写
+
+Data：
+还没排课
+									Stu
+search：
+search_result：
+
+
+
+										Tea
+state：
+opening：
+	有一个问题就是 刷新了网页/或者提交的表单无效要重新输入
+	表单里面的内容还应该在么（像login一样
+opening_result：
+	这页似乎没什么要写的
+
+									 Admin
+arrange：
+	这是系统纯自动排课么 #还没写呜呜呜
+apply：
+	不知道怎么接受那个 通过/未通过 的那个排课按钮
+
+其他：
+把验证码去了
+开心了
+（悲
