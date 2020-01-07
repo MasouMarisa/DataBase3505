@@ -73,7 +73,7 @@
       <li class="nav-item">
          <a class="nav-link" href="/opening/">
           <i class="fas fa-fw fa-book"></i>
-          <span>排课结果</span></a>
+          <span>我要开课</span></a>
       </li>
 
       <!-- Divider -->
@@ -88,7 +88,7 @@
       <li class="nav-item">
          <a class="nav-link" href="/arrange/">
           <i class="fas fa-fw fa-list"></i>
-          <span>我要排课</span></a>
+          <span>排课结果</span></a>
       </li>
 
       <!-- Nav Item - Charts -->
@@ -229,10 +229,13 @@
   
   <!-- table.js -->
   <script>
+      /*
   var dataSet = [
   ["数据结构",2,100,"专业必修","张孝","未审核","-","-"],
   ["程序设计",4,40,"专业必修","赵鑫","已排课","星期一 8:00-9:30|星期四 16:00-17:30","公教2楼2232"],
   ["东方Project",2,50,"专业选修","ZUN","已排课","星期三 12:00-13:30","公教1楼1603"]];
+  */
+  var dataSet = {{ res|safe }};
   $(document).ready(function() {
     $('#stateTable').DataTable( {
         data: dataSet,

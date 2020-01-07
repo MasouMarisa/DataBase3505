@@ -142,18 +142,18 @@
           <!-- Page Heading -->
 			<h1 class="h3 mb-4 text-gray-800">查询</h1>
 			<hr class="sidebar-divider">
-			<form action="/get_post/" method="post">
-				  <!-- {% csrf_token %} -->
+			<form action="/search/" method="post">
+				  {% csrf_token %}
 				  <div class="form-group col-md-4">
 					<label>日期</label>
 					<div class="input-group date form_datetime" data-link-format="yyyy-mm-dd">
-                        <input class="form-control" type="text" value="" readonly>
+                        <input class="form-control" type="text" value="" readonly  name="date">
                         <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
                     </div>
 				  </div>
 				  <div class="form-group col-md-4">
 					<label>时段</label>
-					<select class="form-control input-medium">
+					<select class="form-control input-medium" name="time">
 					  <option>所有</option>
 					  <option>08:00-09:30</option>
 					  <option>10:00-11:30</option>
@@ -169,7 +169,7 @@
 				  </div>
 				  <div class="form-group col-md-4">
 					<label>地点</label>
-					<select class="form-control input-medium">
+					<select class="form-control input-medium" name="place">
 					  <option>所有</option>
 					  <option>公共教学一楼</option>
 					  <option>公共教学二楼</option>
@@ -180,7 +180,8 @@
 					  <option>明德新闻楼</option>
 					  <option>明德法学楼</option>
 					  <option>明德商学楼</option>
-					  <option>外国语学院</option>
+					  <option>明德国际楼</option>
+                      <option>国学楼</option>
 					</select>
 				  </div>
 				  <div class="form-group">

@@ -143,15 +143,15 @@
           <!-- Page Heading -->
 			<h1 class="h3 mb-4 text-gray-800">开课</h1>
 			<hr class="sidebar-divider">
-			<form action="/get_post/" method="post">
+			<form action="/opening/" method="post"> {% csrf_token %}
 				  <!-- {% csrf_token %} -->
 				  <div class="form-group col-md-4">
 					<label>课程名</label>
-					<input class="form-control input-medium"></input>
+					<input class="form-control input-medium" name="name"></input>
 				  </div>
 				  <div class="form-group col-md-4">
 					<label>学分</label>
-					<select class="form-control input-medium">
+					<select class="form-control input-medium" name="credit">
 					  <option>1</option>
 					  <option>2</option>
 					  <option>3</option>
@@ -161,11 +161,11 @@
 				  </div>
 				   <div class="form-group col-md-4">
 					<label>课程人数</label>
-					<input class="form-control input-medium" type="number" onkeypress='return( /[\d]/.test(String.fromCharCode(event.keyCode) ) )'/></input>
+					<input class="form-control input-medium" name="num" type="number" onkeypress='return( /[\d]/.test(String.fromCharCode(event.keyCode) ) )'/></input>
 				  </div>
 				  <div class="form-group col-md-4">
 					<label>课程类型</label>
-					<select class="form-control input-medium">
+					<select class="form-control input-medium" name="is_compulsory">
 					  <option>专业必修</option>
 					  <option>专业选修</option>
 					</select>

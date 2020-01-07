@@ -249,9 +249,12 @@
   
   <!-- table.js -->
   <script>
+      /*
   var dataSet = [
   ["程序设计",4,40,"专业必修","赵鑫","星期一 8:00-9:30|星期四 16:00-17:30","公教2楼2232"],
   ["东方Project",2,50,"专业选修","ZUN","星期三 12:00-13:30","公教1楼1603"]];
+  */
+  var dataSet = {{ res|safe }};
   $(document).ready(function() {
     $('#stateTable').DataTable( {
         data: dataSet,
@@ -261,6 +264,7 @@
             { title: "课程人数" },
             { title: "课程类型" },
             { title: "任课教师" },
+            { title: "课程状态" },
             { title: "课程时间" },
             { title: "课程地点" }
         ]
